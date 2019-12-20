@@ -1,16 +1,20 @@
+/*----------------------------------------------------------------------------------------*/
+
+/* Pion : */
+
 // TPion(nomPion : String, maitre : Bool, couleurPion : Bool, position : (Int,Int), capture : Bool)
-// nomPion sera du format : Mr ou Er1 Ã  Er4 (pour le maitre rouge et les Ã©lÃ¨ves rouge de 1 Ã  4) et Mb ou Eb1 Ã  Eb4 (pour le maitre bleu et les Ã©lÃ¨ves bleu de 1 Ã  4
-// maitre : True si un pion est maÃ®tre, False si Ã©lÃ¨ve (get)
+// nomPion sera du format : Mr ou Er1 à  Er4 (pour le maitre rouge et les élèves rouge de 1 à  4) et Mb ou Eb1 à  Eb4 (pour le maitre bleu et les élèves bleu de 1 à  4
+// maitre : True si un pion est maître, False si élève (get)
 // couleurPion : un pion pourra etre rouge ou bleu (get)
 // position : les Int sont compris entre 0 et 4 car le plateau est de taille (5,5) si capture = True // alors position = (-1,-1) (get set)
-// capture : False en debut de partie et True quand le pion sera capturÃ© (get set)
+// capture : False en debut de partie et True quand le pion sera capturé (get set)
 
 protocol TPion{
     
     // init : String x Bool x Bool-> Tpion
-    // crÃ©ation dâ€™un pion
-    // la position sera initialisÃ©e en fonction de la position dans le tableau du joueur au moment de leur crÃ©ation dans la partie
-    // sa couleur sera la mÃªme que le joueur pour lequel il sera crÃ©Ã©
+    // création d'un pion
+    // la position sera initialisée en fonction de la position dans le tableau du joueur au moment de leur création dans la partie
+    // sa couleur sera la même que le joueur pour lequel il sera créé
     init(namePion : String, master : Bool, color : Bool, position: (Int,Int))
     
     // nomPion : TPion -> String
@@ -26,28 +30,35 @@ protocol TPion{
     var couleurPion : Bool { get }
     
     // master : TPion -> Bool
-    // renvoie True si un pion est maÃ®tre , False sinon
+    // renvoie True si un pion est maître , False sinon
     var master : Bool { get }
     
     // seDeplacer : TPion x positionAjoute -> TPion
-    // dÃ©placer le pion vers une position                
-    // prÃ©-condition : la pos doit Ãªtre une pos sur la carte jouÃ©e
-    // prÃ©-condition 2 : la pos ne doit pas Ãªtre occupÃ© par un pion alliÃ© et la position indiquÃ© sur la carte doit exister (en fonction du pion jouÃ© - ne pas dÃ©passer les limites du plateau-)
-    //post-condition : utilise la fonction capture si la place est occupÃ© par un pion adverse
+    // déplacer le pion vers une position                
+    // pré-condition : la pos doit être une pos sur la carte jouée
+    // pré-condition 2 : la pos ne doit pas être occupé par un pion allié et la position indiqué sur la carte doit exister (en fonction du pion joué - ne pas dépasser les limites du plateau-)
+    //post-condition : utilise la fonction capture si la place est occupé par un pion adverse
     mutating func seDeplacer(positionAjoute : (Int,Int))
     
     // estCapture : TPion -> TPion
-    //changer les positions du pion Ã  (-1,-1) pour montrer quâ€™il est capturÃ© et quâ€™il sorte du plateau.
-    //PrÃ©-condition : le pion doit Ãªtre prÃ©sent sur le plateau et n'est donc pas dÃ©jÃ  capturÃ© (posâ‰ (-1,-1))
+    //changer les positions du pion (-1,-1) pour montrer qu'il est capturé et qu'il sorte du plateau.
+    //Pré-condition : le pion doit être présent sur le plateau et n'est donc pas déjà  capturé (pos: (-1,-1))
     mutating func estCapture()
+
+    //supression de la fonction jouer car elle ne représentait aucun intérêt (en accord avec l'équipe adverse)
 }
+
+
 
 class Pion : TPion {
     
+    //variables privées
     private var _nomPion : String
     private var _master : Bool
     private var _couleurPion : Bool
-    private var _position : (Int, Int) // ATTENTION à initialiser lors de la création de la partie
+    private var _position : (Int, Int)
+
+    //initialisation
     required init(namePion : String, master : Bool, color : Bool, position : (Int,Int)){
         self._nomPion = namePion
         self._master = master
@@ -55,29 +66,35 @@ class Pion : TPion {
         self._position = position
     }
     
+    //variables publiques
     var nomPion : String {return self._nomPion}
     var master : Bool {return self._master}
     var color : Bool {return self._couleurPion}
     var position : (Int,Int) {return self._position}
     var couleurPion: Bool {return self._couleurPion}
     
-    func seDeplacer(positionAjoute : (Int,Int)) {
 
-         //vérification de la position si elle appartient
+    //fonctions publiques 
+
+    func seDeplacer(positionAjoute : (Int,Int)) {
+         //vérification de la position si elle appartient au plateau de jeu 0 <= (x,y) <= 4
         if (positionAjoute.0 >= 0 && positionAjoute.0 <= 4 && positionAjoute.1 >= 0 && positionAjoute.1 <= 4){
             self._position = positionAjoute
         }
     }
     
-
     func estCapture() {
         if (self._position != (-1, -1)) {
             self._position = (-1, -1)
         }
     }
 
-
 }
+
+
+/*----------------------------------------------------------------------------------------*/
+
+/* Carte : */
 
 //TCarte(nomCarte : String, colorCarte : Bool, positionCaseDepart : (Int,Int),mvmtPossibles : [(Int,Int)])
 // nomCarte : nom de l'école d'arts martiaux (voir exemple du sujet) (get)
@@ -113,25 +130,45 @@ protocol TCarte {
     
 }
 
+
+
 struct Carte : TCarte {
+
+    //variables privées
     private var _nomCarte:String
-    private var _mvmtPossible:[(Int,Int)]
+    private var _mvmtPossible:[(Int,Int)] = []
     private var _colorCarte:Bool=false //initialisé à rouge
-    init(nomEcole:String,possibilites:[(Int,Int)]){ //rajouter la couleur dans le init
+
+    //initialisation
+    init(nomEcole:String,possibilites:[(Int,Int)]){ //rajouter la couleur dans le init ? 
         self._nomCarte = nomEcole
-        self._mvmtPossible = possibilites
-        if(self._nomCarte == "Dragon" || self._nomCarte == "Tigre"){
-            self._colorCarte = true //correspond à du bleu
+
+        //on convertit les positions afin de répondre à la structure de donnée (matrice)
+        var mvmt_convertis : [(Int,Int)] = possibilites
+        if(mvmt_convertis.count != 0){
+            for i in 0...mvmt_convertis.count-1{
+                mvmt_convertis[i] = (4-mvmt_convertis[i].1,mvmt_convertis[i].0)
+            }
+        }
+        
+        self._mvmtPossible = mvmt_convertis
+
+        //la couleur de la carte dépend de son nom
+        if(self._nomCarte == "Dragon" || self._nomCarte == "Tigre" || self._nomCarte == "Elephant"){
+            self._colorCarte = true //correspond à bleu
         }
         if (self._nomCarte == "Lapin" || self._nomCarte == "Cobra" || self._nomCarte == "Boeuf"){
             self._colorCarte = false //correspond à rouge
         }
     }
     
+    //variables publiques
     var nomCarte : String { return self._nomCarte }
     var mvmtPossible: [(Int, Int)] { return self._mvmtPossible }
     var colorCarte: Bool { return self._colorCarte }
     
+
+    //fonctions publiques
     func detailsDeplacement(numDeplacement: Int) -> (Int, Int) {
         //on récupére le déplacement donné en paramètre de la carte
         let deplacement : (Int,Int) = self._mvmtPossible[numDeplacement]
@@ -142,9 +179,15 @@ struct Carte : TCarte {
         let nv_position : (Int,Int) = (nv_x - 2,nv_y - 2)
 
         return nv_position
-    }
-    
+    }    
 }
+
+
+
+
+/*----------------------------------------------------------------------------------------*/
+
+/* Joueur : */
 
 // TJoueur(Pions : [TPion], couleurJoueur : Bool, carteJoueur : (TCarte,TCarte))
 // Pions : liste des pions du joueur dont 4 élèves et 1 maître (get set), le tableau aura donc une taille de 5.
@@ -163,7 +206,7 @@ protocol TJoueur{
     
     // carteJoueur : TJoueur -> (TCarte,TCarte)
     // getter permettant de récupérer le couple de cartes que le joueur a en sa possession
-    var carteJoueur : (TCarte,TCarte) { get set }
+    var carteJoueur : (TCarte,TCarte) { get set } //modification mis en get set !
     
     var Pions : [TPion] { get }
     
@@ -174,13 +217,19 @@ protocol TJoueur{
     mutating func changeCarte(numéroCarte : Int, carteMilieu : inout TCarte)
 }
 
+
+
 class Joueur : TJoueur {
     
+    //variables privées
     private var _couleurJoueur: Bool
     private var _Pions : [TPion]
     
+    //initialisation
     required init(color:Bool){
         self._couleurJoueur = color
+
+        //création des pions
         if(self._couleurJoueur){ //bleu
             let pion1 : TPion = Pion(namePion:"Eb1",master:false,color:color,position:(0,0))
             let pion2 : TPion = Pion(namePion:"Eb2",master:false,color:color,position:(0,1))
@@ -199,60 +248,67 @@ class Joueur : TJoueur {
         
         let carte1 : TCarte = Carte(nomEcole:"",possibilites:[])
         let carte2 : TCarte = Carte(nomEcole:"",possibilites:[])
+
+        //on initialise les cartes du joueur avec des cartes vide
         self.carteJoueur = (carte1,carte2)
     }
     
+    //variables privées
     var couleurJoueur: Bool { return _couleurJoueur }
     var carteJoueur: (TCarte, TCarte)
     var Pions: [TPion] { return _Pions }
     
+    //fonctions publiques
     func changeCarte(numéroCarte: Int, carteMilieu: inout TCarte) {
-        //if(carteMilieu.nomCarte == carteCentre.nomCarte) {
-            if(numéroCarte == 1 ) {
-                //var temp2 : TCarte = carteMilieu
-                let temp : TCarte = self.carteJoueur.0
-                self.carteJoueur.0 = carteMilieu
-                carteMilieu = temp
-            }else if(numéroCarte == 2){
-                //var temp2 : TCarte = carteMilieu
-                let temp : TCarte = self.carteJoueur.1
-                self.carteJoueur.1 = carteMilieu
-                carteMilieu = temp
-            }
-        //}
-        
+        if(numéroCarte == 0 ) {
+            let temp : TCarte = self.carteJoueur.0
+            self.carteJoueur.0 = carteMilieu
+            carteMilieu = temp
+        }else if(numéroCarte == 1){
+            let temp : TCarte = self.carteJoueur.1
+            self.carteJoueur.1 = carteMilieu
+            carteMilieu = temp
+        }
     }
     
 }
 
-//TJeu(plateau : [[TPions?]], carteCentre : TCarte, joueurs1 : TJoueur,joueur2 : TJoueur, termine : Bool, joueurCourant : TJoueur) // Le plateau doit Ãªtre une matrice [[TPion?](5)](5) on verra le tableau comme un repÃ¨re cartÃ©sien (x,y) avec 0<=x<=4 et 0<=y<=4 // le joueur 1 aura la couleur rouge et sera placÃ© sur la ligne du bas (soit la ligne y = 0 du plateau) // le joueur 2 aura la couleur bleu et sera placÃ© sur la ligne du haut (soit la ligne y = 4 du plateau) // termine aura la valeur True si la partie est finie, false sinon // carteCentre sera la cinquiÃ¨me carte distribuÃ© lorsquâ€™on crÃ©e la partie et pourra Ãªtre modifiÃ© //joueurCourant correspond au joueur qui est en train de jouer son tour
+
+
+
+/*----------------------------------------------------------------------------------------*/
+
+/* Jeu : */
+
+
+//TJeu(plateau : [[TPions?]], carteCentre : TCarte, joueurs1 : TJoueur,joueur2 : TJoueur, termine : Bool, joueurCourant : TJoueur) // Le plateau doit être une matrice [[TPion?](5)](5) on verra le tableau comme un repère cartésien (x,y) avec 0<=x<=4 et 0<=y<=4 // le joueur 1 aura la couleur rouge et sera placé sur la ligne du bas (soit la ligne y = 0 du plateau) // le joueur 2 aura la couleur bleu et sera placé sur la ligne du haut (soit la ligne y = 4 du plateau) // termine aura la valeur True si la partie est finie, false sinon // carteCentre sera la cinquième carte distribué lorsqu'on crée la partie et pourra être modifié //joueurCourant correspond au joueur qui est en train de jouer son tour
 
 protocol TJeu{
     
-    // init :[TCarte] -> TJeu //crÃ©e un plateau de couples d'entiers, deux joueurs et place leur pions respectifs sur ce plateau // Le plateau doit Ãªtre une matrice [[TPion?](5)](5) // Les joueurs porteront les couleurs rouge et bleu // Les pions des joueurs seront placÃ©s en fonction de leur couleur chacun sa ligne de dÃ©part avec le maitre au centre et se faisant face.
+    // init :[TCarte] -> TJeu //crée un plateau de couples d'entiers, deux joueurs et place leur pions respectifs sur ce plateau // Le plateau doit être une matrice [[TPion?](5)](5) // Les joueurs porteront les couleurs rouge et bleu // Les pions des joueurs seront placés en fonction de leur couleur chacun sa ligne de départ avec le maitre au centre et se faisant face.
     
-    // Le joueur courant prend la valeur du joueur portant la couleur de la carte centrale // PrÃ©-requis : Le tableau de carte en paramÃ¨tre comportera au moins 5 cartes qui seront rÃ©partis au hasard entre les joueurs 1 (2cartes) et 2 (2 cartes Ã©galement) et 1 au centre // Il faudra prÃ©ciser que la partie n'est pas terminÃ©e.
+    // Le joueur courant prend la valeur du joueur portant la couleur de la carte centrale // Pré-requis : Le tableau de carte en paramètre comportera au moins 5 cartes qui seront répartis au hasard entre les joueurs 1 (2cartes) et 2 (2 cartes également) et 1 au centre // Il faudra préciser que la partie n'est pas terminée.
     
     init(pioche : [TCarte])
     
     // carteCentre : TJeu -> TCarte // renvoie la carteCentrale du jeu
-    var carteCentre : TCarte { get set }
+    var carteCentre : TCarte { get set } //mis en get set
     
-    //verifierCartePion : TPion x TJeu x TCarte -> Bool //renvoie false si pour une carte et un pion donnÃ©, il nâ€™y a pas de dÃ©placement possible
+    //verifierCartePion : TPion x TJeu x TCarte -> Bool //renvoie false si pour une carte et un pion donné, il n'y a pas de déplacement possible
     func verifierCartePion(pion : TPion , carte : TCarte) -> Bool
     
-    //listePionVerifier : TCarte x TJeu -> [TPion?] //renvoie la liste des pions qui ont des dÃ©placements possible avec les cartes du joueur courant
+    //listePionVerifier : TCarte x TJeu -> [TPion?] //renvoie la liste des pions qui ont des déplacements possible avec les cartes du joueur courant
     func listePionVerifier(carte : TCarte) -> [TPion?]
     
-    // deplacementPossible : TJeu x TPion x (Int,Int) -> Bool // renvoie True si la position du pion + la position donnÃ©e est encore dans le plateau, False sinon // pionVoulu est le pion que l'on souhaite dÃ©placer // dÃ©placement correspond au couple d'entier renvoyer par la fonction "detailsDeplacement" situÃ© dans TCarte, qui permet de voir directement les ajouts Ã faire aux coordonnÃ©es du pion.
+    // deplacementPossible : TJeu x TPion x (Int,Int) -> Bool // renvoie True si la position du pion + la position donnée est encore dans le plateau, False sinon // pionVoulu est le pion que l'on souhaite déplacer // déplacement correspond au couple d'entier renvoyer par la fonction "detailsDeplacement" situé dans TCarte, qui permet de voir directement les ajouts à faire aux coordonnées du pion.
     
     func deplacementPossible( pionVoulu : TPion, deplacement : (Int,Int) ) -> Bool
     
-    // deplacementPossibleCartePion : TJeu x TCarte x TPion -> [(Int,Int)] // renvoie le tableau des positions que le pion peut prendre en fonction de la carte donnÃ©e // ici il faudra utiliser la fonction dÃ©tailsDÃ©placement situÃ© dans TCarte, la fonction deplacementPossible de TJeu pourra Ã©galement vous aider.
+    // deplacementPossibleCartePion : TJeu x TCarte x TPion -> [(Int,Int)] // renvoie le tableau des positions que le pion peut prendre en fonction de la carte donnée // ici il faudra utiliser la fonction détailsDéplacement situé dans TCarte, la fonction deplacementPossible de TJeu pourra également vous aider.
     
     func deplacementPossibleCartePion(carte : TCarte ,pion : TPion) -> [(Int,Int)]?
     
-    // deplacerPion : TJeu x TPion x (Int,Int) -> TJeu // deplace le pion sur le plateau // la fonction seDeplacer situÃ©e dans TPion sera utilisÃ© // si un pion adverse Ã©tait dÃ©jÃ placÃ© sur la case en question alors on utilise la fonction estCapture() de TPion sur ce pion adverse avant de dÃ©poser le pion sur cette case.
+    // deplacerPion : TJeu x TPion x (Int,Int) -> TJeu // deplace le pion sur le plateau // la fonction seDeplacer située dans TPion sera utilisé // si un pion adverse était déjà placé sur la case en question alors on utilise la fonction estCapture() de TPion sur ce pion adverse avant de déposer le pion sur cette case.
     
     mutating func deplacerPion(pion : inout TPion, pos : (Int,Int))
     
@@ -260,44 +316,49 @@ protocol TJeu{
     var plateau : [[TPion?]] { get }
     
     // joueurCourant : TJeu -> TJoueur // get : renvoie le joueur courant
-    var joueurCourant : TJoueur { get set }
+    var joueurCourant : TJoueur { get set } //mis en get set
     
     // changerJoueurCourant : TJeu -> TJeu // change le joueur courant de la partie
     mutating func changerJoueurCourant()
     
-    // termine : TJeu -> Bool // renvoie la valeur de termine True = terminÃ© et False = en cours
+    // termine : TJeu -> Bool // renvoie la valeur de termine True = terminé et False = en cours
     var termine : Bool { get }
     
-    // existeDeplacement : TJeu -> Bool // renvoie s'il est possible pour le joueur courant de dÃ©placer un pion. // True si possible , False sinon
+    // existeDeplacement : TJeu -> Bool // renvoie s'il est possible pour le joueur courant de déplacer un pion. // True si possible , False sinon
     func existeDeplacement() -> Bool
     
-    //existeDeplacementCarte : TJeu x TCarte -> Bool // renvoie True s'il existe des pions que l'on peut dÃ©placer Ã carte donnÃ©e en paramÃ¨tre, False sinon
+    //existeDeplacementCarte : TJeu x TCarte -> Bool // renvoie True s'il existe des pions que l'on peut déplacer à carte donnée en paramètre, False sinon
     func existeDeplacementCarte(carte : TCarte) -> Bool
-    
-    //partir de la
-    
-    // endBattle : TJeu -> Int x TJeu // renvoie 1 si le pion jouÃ© est le maitre et est arrivÃ© sur la case centrale du joueur adverse renvoie 2 si le joueur a capturÃ© le maÃ®tre adverse, renvoie 3 si 1 et 2 et renvoie 0 sinon , termine devient True si une des deux conditions de fin est respectÃ©e
+        
+    // endBattle : TJeu -> Int x TJeu // renvoie 1 si le pion joué est le maitre et est arrivé sur la case centrale du joueur adverse renvoie 2 si le joueur a capturé le maître adverse, renvoie 3 si 1 et 2 et renvoie 0 sinon , termine devient True si une des deux conditions de fin est respectée
     
     mutating func endBattle() -> Int
     
 }
 
+
+
 class Jeu : TJeu {
     
+    //variables privées
     private var _plateau : [[TPion?]]
     private var _joueur1 : TJoueur
     private var _joueur2 : TJoueur
     private var _pioche : [TCarte]
     private var _termine : Bool
     
-    required init(pioche: [TCarte]) { //pas fini
+    //initialisation
+    required init(pioche: [TCarte]) { 
         self._plateau = [[TPion?]](repeating:[TPion?](repeating:nil,count:5),count:5)
         self._joueur1 = Joueur(color:false) //rouge
         self._joueur2 = Joueur(color:true) //bleu
-        for i in 0...4 { //placement des pions sur le plateau
-            self._plateau [4][i] = self._joueur1.Pions[i]
+
+        //placement des pions sur le plateau
+        for i in 0...4 { 
+            self._plateau [4][i] = self._joueur1.Pions[i] //joueur rouge
             self._plateau[0][i] = self._joueur2.Pions[i] //joueur bleu
         }
+
         self._pioche = pioche
         self._termine = false
         
@@ -336,21 +397,22 @@ class Jeu : TJeu {
         else {
             self.joueurCourant = self._joueur2
         }
-        
     }
     
+    //variables publiques
     var plateau : [[TPion?]] {return self._plateau}
     var joueurCourant : TJoueur
     var termine : Bool {return self._termine}
     var carteCentre: TCarte
     
+    //fonctions publiques
     func verifierCartePion(pion: TPion, carte: TCarte) -> Bool {
         let position_pion : (Int,Int) = pion.position
         
-        //calcul pour chaque position possible
+        //calcul pour chaques positions possibles
         var i : Int = 0
         var verif : Bool = false
-        while (i < carte.mvmtPossible.count && !verif){ //conditon arret : si verif passe à true cad qu'un déplacement est possible et que i ne dépasse pas la taille des déplacements possibles que permet la carte
+        while (i < carte.mvmtPossible.count && !verif){ //conditon arret : si verif passe à true (cad qu'un déplacement est possible) et que i ne dépasse pas la taille des déplacements possibles que permet la carte
             
             //on récupère la position à ajouter à la position du pion. i représente le déplacement courant.
             var position_calculee : (Int,Int) = carte.detailsDeplacement(numDeplacement: i)
@@ -377,13 +439,6 @@ class Jeu : TJeu {
             i+=1
         }
         return verif
-    }
-    
-    private func convertPourJoueurB(position:(Int,Int)) -> (Int,Int){
-        let pos_x : Int = position.0 * (-1)
-        let pos_y : Int = position.1 * (-1)
-        let convert_pos : (Int,Int) = (pos_x,pos_y)
-        return convert_pos
     }
     
     func listePionVerifier(carte: TCarte) -> [TPion?] {
@@ -432,7 +487,6 @@ class Jeu : TJeu {
         } else {
             let position_pion : (Int,Int) = pion.position
             var tab_pos : [(Int,Int)] = []
-
             if(position_pion != (-1,-1)){
                 //calcul pour chaque position possible
                 var i : Int = 0
@@ -466,6 +520,10 @@ class Jeu : TJeu {
                 }
             }
             
+            //on convertit les positions pour l'affichage afin d'être conforme au repère donné dans les specif
+            for i in 0...tab_pos.count-1{
+                tab_pos[i] = conversionPosition(pos: tab_pos[i], conv : false)
+            }
             return tab_pos
         }
     }
@@ -474,14 +532,14 @@ class Jeu : TJeu {
         
         let contenu : TPion? = self._plateau[pos.0][pos.1]
         if var c = contenu {
-            if(c.couleurPion != pion.couleurPion){
+            if(c.couleurPion != pion.couleurPion){ //si c'est un pion adverse
                 c.estCapture()
                 self._plateau[pion.position.0][pion.position.1] = nil //on vide l'ancienne position de pion
-                pion.seDeplacer(positionAjoute: pos)
-                self._plateau[pos.0][pos.1] = pion
+                pion.seDeplacer(positionAjoute: pos) //on modifie la position du pion (set)
+                self._plateau[pos.0][pos.1] = pion //on déplace le pion sur la nouvelle position du tableau
             }
         }
-        else {
+        else { //si la case est vide
             self._plateau[pion.position.0][pion.position.1] = nil
             pion.seDeplacer(positionAjoute: pos)
             self._plateau[pos.0][pos.1] = pion
@@ -492,34 +550,19 @@ class Jeu : TJeu {
         var k : Int = 0
         var verif : Bool = false
         
-        while (k < self.joueurCourant.Pions.count && !verif){
-            // while (i < deplacementCarte1.count && !verif){ // condition d'arret : il existe une postition jouable pour le pion courant et un déplacement de la première carte du joueur
-            //     if(deplacementPossible(pionVoulu: self.joueurCourant.Pions[k], deplacement: self.joueurCourant.carteJoueur.0.detailsDeplacement(numDeplacement : i))) {
-            //         verif = true
-            //     }
-            //     i+=1
-            // }
+        //on vérifie pour chaque pion et chaque carte du joueur si il exsite des déplacements
+        while (k < self.joueurCourant.Pions.count && !verif){ //condition d'arret : on a parcouru tous les pions du joueur ou verif est passé à true (il existe au moins un déplacement possible)
             if (existeDeplacementCarte(carte: self.joueurCourant.carteJoueur.0) || existeDeplacementCarte (carte : self.joueurCourant.carteJoueur.1)) {
                 verif = true
             }
             k+=1
         }
         
-        // k = 0
-        // while (k < self.joueurCourant.Pions.count && !verif){
-        //     while (j < deplacementCarte2.count && !verif){ // condition d'arret : il existe une postition jouable pour le pion courant et un déplacement de la deuxième carte du joueur
-        //         if(deplacementPossible(pionVoulu: self.joueurCourant.Pions[k], deplacement: self.joueurCourant.carteJoueur.1.detailsDeplacement(numDeplacement : j))) {
-        //             verif = true
-        //         }
-        //         j+=1
-        //     }
-        //     k+=1
-        // }
-        
         return verif
     }
     
     func existeDeplacementCarte(carte: TCarte) -> Bool {
+        //on vérifie s'il existe des pions que l'on peut jouer avec la carte donée en paramètre (true si c'est la cas false sinon)
         if(listePionVerifier(carte: carte).count == 0) {
             return false
         }
@@ -530,11 +573,14 @@ class Jeu : TJeu {
     
     func endBattle() -> Int {
         var res : Int = 0
+
         if(self.joueurCourant.couleurJoueur){ //joueur bleu
             var i : Int = 0
             var master : Bool = false
-            var pion_master : TPion = self.joueurCourant.Pions[i]
-            while(i < self.joueurCourant.Pions.count && !master){
+            var pion_master : TPion = self.joueurCourant.Pions[i] //master du joueur bleu
+
+
+            while(i < self.joueurCourant.Pions.count && !master){ //condition d'arret : on a parcouru tous les pions du joueur ou master est passé à true (on a trouvé le master dans la liste)
                 if(self.joueurCourant.Pions[i].master){
                     master = true
                     pion_master = self.joueurCourant.Pions[i]
@@ -542,7 +588,7 @@ class Jeu : TJeu {
                 i+=1
             }
             
-            if(pion_master.position == (4,2)){
+            if(pion_master.position == (4,2)){ //si le master bleu est arrivé sur l'arche du joueur rouge (position en (4,2))
                 self._termine = true
                 res = 1
             }
@@ -550,7 +596,7 @@ class Jeu : TJeu {
             master = false
             i = 0
             var master_rouge : TPion = self.joueurCourant.Pions[i]
-            while(i < self._joueur1.Pions.count && !master){//on verifie si on a capturé le maitre rouge
+            while(i < self._joueur1.Pions.count && !master){//condition d'arret : on a parcouru tous les pions du joueur adverse ou master est passé à true (on a trouvé le master rouge dans la liste du joueur rouge)
                 if(self.joueurCourant.Pions[i].master){
                     master = true
                     master_rouge = self._joueur1.Pions[i]
@@ -558,12 +604,12 @@ class Jeu : TJeu {
                 i+=1
             }
             
-            if (master_rouge.position == (-1,-1)){
+            if (master_rouge.position == (-1,-1)){ //si le master rouge s'est fait capturé
                 self._termine = true
                 res = 2
             }
             
-            if(pion_master.position==(4,2) && master_rouge.position == (-1,-1)){
+            if(pion_master.position==(4,2) && master_rouge.position == (-1,-1)){ //si le master rouge s'est fait capturé et si le master bleu est arrivé sur l'arche du joueur rouge (position en (4,2))
                 self._termine = true
                 res = 3
             }
@@ -571,8 +617,9 @@ class Jeu : TJeu {
         } else { //joueur rouge
             var i : Int = 0
             var master : Bool = false
-            var pion_master : TPion = self.joueurCourant.Pions[i]
-            while(i < self.joueurCourant.Pions.count && !master){
+            var pion_master : TPion = self.joueurCourant.Pions[i] //master du joueur rouge
+
+            while(i < self.joueurCourant.Pions.count && !master){ //condition d'arret : on a parcouru tous les pions du joueur ou master est passé à true (on a trouvé le master dans la liste)
                 if(self.joueurCourant.Pions[i].master){
                     master = true
                     pion_master = self.joueurCourant.Pions[i]
@@ -580,7 +627,7 @@ class Jeu : TJeu {
                 i+=1
             }
             
-            if(pion_master.position == (0,2)){
+            if(pion_master.position == (0,2)){ //si le master rouge est arrivé sur l'arche du joueur bleu (position en (0,2))
                 self._termine = true
                 res = 1
             }
@@ -588,7 +635,7 @@ class Jeu : TJeu {
             master = false
             i = 0
             var master_bleu : TPion = self.joueurCourant.Pions[i]
-            while(i < self._joueur2.Pions.count && !master){//on verifie si on a capturé le maitre rouge
+            while(i < self._joueur2.Pions.count && !master){//condition d'arret : on a parcouru tous les pions du joueur adverse ou master est passé à true (on a trouvé le master bleu dans la liste du joueur bleu)
                 if(self.joueurCourant.Pions[i].master){
                     master = true
                     master_bleu = self._joueur2.Pions[i]
@@ -596,12 +643,12 @@ class Jeu : TJeu {
                 i+=1
             }
             
-            if (master_bleu.position == (-1,-1)){
+            if (master_bleu.position == (-1,-1)){ //si le master bleu s'est fait capturé
                 self._termine = true
                 res = 2
             }
             
-            if(pion_master.position==(0,2) && master_bleu.position == (-1,-1)){
+            if(pion_master.position==(0,2) && master_bleu.position == (-1,-1)){ //si le master bleu s'est fait capturé et si le master rouge est arrivé sur l'arche du joueur bleu (position en (0,2))
                 self._termine = true
                 res = 3
             }
@@ -618,38 +665,52 @@ class Jeu : TJeu {
         }
     }
 
-    private func conversionPosition(pos: (Int,Int)) -> (Int,Int){
-        //fonction qui permet de convertir les positions afin de correspondre à la structure d'une matrice et non au repère euclidien demandé
+    //fonctions privées
+
+    //Résultat : La fonction permet de convertir la position donnée en paramètre afin que les pions bleus puissent être déplacés sur le plateau
+    //param : position une position (x,y) avec 0 <= x,y <= 4. Cette position répond à la structure de la matrice
+    private func convertPourJoueurB(position:(Int,Int)) -> (Int,Int){
+        let pos_x : Int = position.0 * (-1)
+        let pos_y : Int = position.1 * (-1)
+        let convert_pos : (Int,Int) = (pos_x,pos_y)
+        return convert_pos
+    }
+
+    //Résultat : La fonction permet de convertir les positions afin de correspondre à la structure d'une matrice et non au repère euclidien demandé
+    //param : pos une position (x,y) avec 0 <= x,y <= 4. Le booleen permet de savoir si il faut convertir du repère euclédien au repère de la matrice (true) ou inversement (false) 
+    private func conversionPosition(pos: (Int,Int), conv : Bool) -> (Int,Int){
         var nv_pos : (Int,Int)
-        if(!self.joueurCourant.couleurJoueur){
+        if(conv){
             nv_pos = (4-pos.1, pos.0)
         } else {
-             nv_pos = (4-(4-pos.1), pos.0)
+             nv_pos = (pos.1, 4-pos.0) 
         }
         return nv_pos
     }
 }
 
+
+
+
 /*----------------------------------------------------------------------------------------*/
 
 /* Main : */
 
-// création de la pioche
- 
 
-// création des cartes à mettre dans la pioche
-var Carte1 : TCarte = Carte(nomEcole : "Lapin",possibilites : [(3,1),(1,3),(2,4)])
-var Carte2 : TCarte = Carte(nomEcole : "Boeuf",possibilites : [(1,2),(2,3),(3,2)])
-var Carte3 : TCarte = Carte(nomEcole : "Cobra",possibilites : [(2,1),(1,3),(3,3)])
-var Carte4 : TCarte = Carte(nomEcole : "Dragon",possibilites : [(1,4),(1,0),(3,1),(3,3)])
-var Carte5 : TCarte = Carte(nomEcole : "Tigre",possibilites : [(3,2),(0,2)])
+// création des cartes à mettre dans la pioche 
+//*- seulement 5 cartes ont été créées par l'équipe adverse, nous en avons ajouté une afin de tester la robustesse -*
+var Carte1 : TCarte = Carte(nomEcole : "Lapin",possibilites : [(1,1),(3,3),(4,2)])
+var Carte2 : TCarte = Carte(nomEcole : "Boeuf",possibilites : [(2,1),(2,3),(3,2)])
+var Carte3 : TCarte = Carte(nomEcole : "Cobra",possibilites : [(1,2),(3,1),(3,3)])
+var Carte4 : TCarte = Carte(nomEcole : "Dragon",possibilites : [(0,3),(1,1),(3,1),(4,3)])
+var Carte5 : TCarte = Carte(nomEcole : "Tigre",possibilites : [(2,1),(2,4)])
+var Carte6 : TCarte = Carte(nomEcole : "Elephant", possibilites : [(1,2),(1,3),(3,2),(3,3)])
 
-// insertion des cartes dans la pioche
-var TableauCarte : [TCarte] = [Carte1,Carte2,Carte3,Carte4,Carte5]
+// création de la pioche et insertion des cartes dans la pioche
+var TableauCarte : [TCarte] = [Carte1,Carte2,Carte3,Carte4,Carte5,Carte6]
 
 // initialisation de la partie avec la pioche générée précédemment
 var jeu : TJeu = Jeu(pioche : TableauCarte)
-
 
 // condition d'arrêt du while Jeu.termine == True
 while !jeu.termine {
@@ -664,7 +725,7 @@ while !jeu.termine {
     //afichage du plateau
     var affichage : String = "     0    1    2    3    4 \n"
     for i in 0...4 {
-        affichage += "\(i)  "
+        affichage += "\(4-i)  "
         for j in 0...4 {
             if let c = jeu.plateau[i][j] {
                 if(c.couleurPion){
@@ -766,9 +827,12 @@ while !jeu.termine {
             }
             
         }
+        //conversion de la position
+        pos = (4-pos.1,pos.0)
         
         // on vérifie s'il existe déjà un pion adverse sur le plateau à la position donnée et si oui on capture le pion adverse
-        //oublie de verification si c'est un pion adverse ou non
+
+        //*- ici l'équipe des specifications avait oublié de verifier si c'est un pion adverse ou non -*
         if jeu.plateau[pos.0][pos.1] != nil {
             var j : TPion? = jeu.plateau[pos.0][pos.1]
             if(j!.couleurPion != jeu.joueurCourant.couleurJoueur){
@@ -779,18 +843,9 @@ while !jeu.termine {
             jeu.deplacerPion(pion: &pionJoue,pos : pos)
         }
 
-        // var carteM : TCarte = jeu.carteCentre
-        jeu.joueurCourant.changeCarte(numéroCarte : carteJoue,carteMilieu : &jeu.carteCentre)
-        //oublie de changer de carte à la fin d'un tour
-        // if(numCarte == 0 ) {
-        //         let temp : TCarte = jeu.joueurCourant.carteJoueur.0
-        //         jeu.joueurCourant.carteJoueur.0 = jeu.carteCentre
-        //         jeu.carteCentre = temp
-        // }else if(numCarte == 1){
-        //         let temp : TCarte = jeu.joueurCourant.carteJoueur.1
-        //         jeu.joueurCourant.carteJoueur.1 = jeu.carteCentre
-        //         jeu.carteCentre = temp
-        // }
+        //*- ici l'équipe des specifications avait oublié de rajouter le changement de carte -*
+        var jeu_local : TJeu = jeu
+        jeu.joueurCourant.changeCarte(numéroCarte : numCarte,carteMilieu : &jeu_local.carteCentre)
         
         if jeu.endBattle() == 0 {
             jeu.changerJoueurCourant()
@@ -823,16 +878,8 @@ while !jeu.termine {
             }
         }
 
-        jeu.joueurCourant.changeCarte(numéroCarte : carteJoue,carteMilieu : &jeu.carteCentre)
-        // if(carteJoue == 0 ) {
-        //         let temp : TCarte = jeu.joueurCourant.carteJoueur.0
-        //         jeu.joueurCourant.carteJoueur.0 = jeu.carteCentre
-        //         jeu.carteCentre = temp
-        //     }else if(carteJoue == 1){
-        //         let temp : TCarte = jeu.joueurCourant.carteJoueur.1
-        //         jeu.joueurCourant.carteJoueur.1 = jeu.carteCentre
-        //         jeu.carteCentre = temp
-        //     }
+        var jeu_local : TJeu = jeu
+        jeu.joueurCourant.changeCarte(numéroCarte : carteJoue,carteMilieu : &jeu_local.carteCentre)
     }
 }
 if(jeu.joueurCourant.couleurJoueur){
